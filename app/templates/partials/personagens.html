@@ -1,0 +1,18 @@
+{# Container/indice de partials de personagens.                       #}
+{# Este arquivo documenta quais partials existem para o sistema de     #}
+{# revisao de personagens. Cada partial pode ser carregado            #}
+{# independentemente via HTMX.                                          #}
+
+Partial
+  - _personagem_card.html
+  - _falas_personagem.html
+  - _sugestoes.html
+  - _status_analise.html
+  - _mesclar_form.html
+
+Uso
+    hx-get="/livro/{id}/personagem/{pid}/falas-partial"
+    hx-get="/livro/{id}/sugestoes-partial"
+    hx-get="/api/livro/{id}/status-partial"
+    hx-get="/livro/{id}/personagem/{pid}/mesclar-form"
+#}

@@ -1,0 +1,51 @@
+{# Partial: lista de falas de um personagem.                       #}
+{#                                                                  #}
+{# Variaveis:                                                       #}
+{#   - personagem: dict | None (None para estado vazio/erro)       #}
+{#   - falas: lista de dicts (cd_sequencial, tx_fala, eh_narracao,  #}
+{#     nr_ordem, tx_instrucao_emocao)                              #}
+{#   - erro: str | None (mensagem opcional de erro)                #}
+{% if erro %}
+  <div class="alert alert-warning" role="alert">
+    <i class="bi bi-exclamation-triangle"></i> {{ erro }}
+  </div>
+{% elif not personagem %}
+  <p class="text-muted">
+    <i class="bi bi-arrow-left"></i>
+    Selecione um personagem na lista ao lado para ver suas falas.
+  </p>
+{% else %}
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h4 class="h6 mb-0">
+      <i class="bi bi-chat-square-text"></i>
+      Falas de <span class="text-primary">{{ personagem.tx_personagem }}</span>
+    </h4>
+    <small class="text-muted">{{ falas|length }} fala(s)</small>
+  </div>
+
+  {% if falas %}
+    <div class="falas-lista" style="max-height: 60vh; overflow-y: auto;">
+      {% for fala in falas %}
+        <div class="fala-item
+                    {% if fala.eh_narracao == 'S' %}fala-narracao{% else %}fala-dialogo{% endif %}">
+          <div class="d-flex justify-content-between align-items-start">
+            <small class="text-muted">
+              #{{ fala.cd_sequencial }} · ordem {{ fala.nr_ordem }}
+              {% if fala.eh_narracao == 'S' %}
+                <span class="badge bg-secondary ms-1">Narração</span>
+              {% endif %}
+            </small>
+          </div>
+          <p class="mb-1 mt-1 fala-texto">{{ fala.tx_fala }}</p>
+          {% if fala.tx_instrucao_emocao %}
+            <small class="fala-emocao">
+              <i class="bi bi-emoji-smile"></i> {{ fala.tx_instrucao_emocao }}
+            </small>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">Este personagem ainda não possui falas registradas.</p>
+  {% endif %}
+{% endif %}

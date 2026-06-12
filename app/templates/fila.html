@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Fila de Producao &mdash; Leitor{% endblock %}
+
+{% block content %}
+<h1 class="h3 mb-3">Fila de producao</h1>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if livros %}
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>Pos.</th>
+                    <th>ID</th>
+                    <th>Titulo</th>
+                    <th>Autor</th>
+                    <th>Estado</th>
+                    <th>Progresso</th>
+                    <th class="text-end">Acoes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for livro in livros %}
+                <tr>
+                    <td><strong>{{ livro.fila_posicao }}</strong></td>
+                    <td>{{ livro.cd_sequencial }}</td>
+                    <td>{{ livro.tx_titulo }}</td>
+                    <td>{{ livro.autor or '-' }}</td>
+                    <td>
+                        <span class="badge bg-secondary estado-badge">{{ livro.estado_pipeline }}</span>
+                        {% if livro.fila_pausado == 'S' %}
+                        <span class="badge bg-warning text-dark estado-badge">Pausado</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ livro.progresso_atual }}/{{ livro.progresso_total }}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-secondary"
+                                hx-put="/api/fila/{{ livro.cd_sequencial }}/reordenar"
+                                hx-vals='{"nova_posicao": {{ livro.fila_posicao - 1 if livro.fila_posicao > 1 else 1 }}}'
+                                hx-swap="none"
+                                {% if livro.fila_posicao <= 1 %}disabled{% endif %}>
+                            Subir
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary"
+                                hx-put="/api/fila/{{ livro.cd_sequencial }}/reordenar"
+                                hx-vals='{"nova_posicao": {{ livro.fila_posicao + 1 }}}'
+                                hx-swap="none">
+                            Descer
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger"
+                                hx-delete="/api/fila/{{ livro.cd_sequencial }}"
+                                hx-swap="none"
+                                hx-confirm="Remover este livro da fila?">
+                            Remover
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            Fila vazia. Faca o upload de um livro para iniciar.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

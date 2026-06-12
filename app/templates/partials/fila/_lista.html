@@ -1,0 +1,11 @@
+{% if livros %}
+  <div class="fila-lista">
+    {% for livro in livros %}
+      {% include "partials/fila/_item_fila.html" %}
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info text-center" role="alert">
+    <i class="bi bi-inbox"></i> Nenhum livro na fila no momento.
+  </div>
+{% endif %}

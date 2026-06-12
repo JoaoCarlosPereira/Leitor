@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Dashboard &mdash; Leitor{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3">Dashboard</h1>
+    <a href="/livro/novo" class="btn btn-primary">+ Novo Livro</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header"><strong>Livros em producao</strong></div>
+    <div class="card-body p-0">
+        {% if livros %}
+        <table class="table mb-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Titulo</th>
+                    <th>Autor</th>
+                    <th>Estado</th>
+                    <th>Progresso</th>
+                    <th class="text-end">Acoes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for livro in livros %}
+                <tr>
+                    <td>{{ livro.cd_sequencial }}</td>
+                    <td>{{ livro.tx_titulo }}</td>
+                    <td>{{ livro.autor or '-' }}</td>
+                    <td>
+                        <span class="badge bg-secondary estado-badge">{{ livro.estado_pipeline }}</span>
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 6px; min-width: 120px;">
+                            <div class="progress-bar"
+                                 hx-get="/api/livro/{{ livro.cd_sequencial }}/status"
+                                 hx-trigger="every 5s"
+                                 hx-swap="none"
+                                 style="width: {{ (livro.progresso_atual / (livro.progresso_total or 1) * 100) | round }}%">
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ livro.progresso_atual }}/{{ livro.progresso_total }}</small>
+                    </td>
+                    <td class="text-end">
+                        <a href="/livro/{{ livro.cd_sequencial }}/personagens" class="btn btn-sm btn-outline-primary">Revisar</a>
+                        <a href="/livro/{{ livro.cd_sequencial }}/producao" class="btn btn-sm btn-outline-secondary">Producao</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            Nenhum livro em producao. Faca o upload de um novo PDF para comecar.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if livros_concluidos %}
+<div class="card">
+    <div class="card-header"><strong>Ultimos concluidos</strong></div>
+    <div class="card-body p-0">
+        <table class="table mb-0">
+            <thead>
+                <tr><th>ID</th><th>Titulo</th><th>Estado</th><th class="text-end">Acoes</th></tr>
+            </thead>
+            <tbody>
+                {% for livro in livros_concluidos %}
+                <tr>
+                    <td>{{ livro.cd_sequencial }}</td>
+                    <td>{{ livro.tx_titulo }}</td>
+                    <td><span class="badge bg-success estado-badge">{{ livro.estado_pipeline }}</span></td>
+                    <td class="text-end">
+                        <a href="/livro/{{ livro.cd_sequencial }}/download" class="btn btn-sm btn-success">Download</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

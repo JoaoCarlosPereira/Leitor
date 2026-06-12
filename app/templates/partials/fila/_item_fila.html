@@ -1,0 +1,81 @@
+{% set estado_normalizado = livro.estado_pipeline or 'aguardando' %}
+{% set pausado = livro.fila_pausado == 'S' %}
+<div class="fila-item {{ estado_normalizado }}{% if pausado %} pausado{% endif %}"
+     id="fila-item-{{ livro.cd_sequencial }}">
+  <div class="fila-posicao">
+    #{{ livro.fila_posicao or '-' }}
+  </div>
+
+  <div class="flex-grow-1">
+    <h5 class="mb-1">
+      <a href="/livro/{{ livro.cd_sequencial }}/producao" class="text-decoration-none">
+        {{ livro.tx_titulo or '(sem título)' }}
+      </a>
+      {% if pausado %}
+        <span class="badge bg-warning text-dark ms-2">Pausado</span>
+      {% endif %}
+    </h5>
+    {% if livro.autor %}
+      <small class="text-muted">{{ livro.autor }}</small>
+    {% endif %}
+
+    <div class="mt-1">
+      {% include "partials/fila/_status_badge.html" %}
+    </div>
+
+    {% if livro.progresso_total and livro.estado_pipeline not in ['concluido', 'aguardando'] %}
+      <div class="progress mt-2" style="height: 6px;">
+        <div class="progress-bar"
+             role="progressbar"
+             style="width: {{ (livro.progresso_atual / livro.progresso_total * 100) | round(0, 'floor') }}%">
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="fila-acoes d-flex gap-1 flex-wrap justify-content-end">
+    <button class="btn btn-sm btn-outline-secondary"
+            hx-put="/api/fila/{{ livro.cd_sequencial }}/reordenar"
+            hx-vals='{"nova_posicao": {{ (livro.fila_posicao or 1) - 1 }}}'
+            hx-target="#fila-item-{{ livro.cd_sequencial }}"
+            hx-swap="outerHTML"
+            title="Mover para cima">
+      <i class="bi bi-arrow-up"></i>
+    </button>
+    <button class="btn btn-sm btn-outline-secondary"
+            hx-put="/api/fila/{{ livro.cd_sequencial }}/reordenar"
+            hx-vals='{"nova_posicao": {{ (livro.fila_posicao or 1) + 1 }}}'
+            hx-target="#fila-item-{{ livro.cd_sequencial }}"
+            hx-swap="outerHTML"
+            title="Mover para baixo">
+      <i class="bi bi-arrow-down"></i>
+    </button>
+
+    {% if pausado %}
+      <button class="btn btn-sm btn-outline-success"
+              hx-put="/api/livro/{{ livro.cd_sequencial }}/retomar-fila"
+              hx-target="#fila-item-{{ livro.cd_sequencial }}"
+              hx-swap="outerHTML"
+              title="Retomar">
+        <i class="bi bi-play-fill"></i>
+      </button>
+    {% else %}
+      <button class="btn btn-sm btn-outline-warning"
+              hx-put="/api/livro/{{ livro.cd_sequencial }}/pausar-fila"
+              hx-target="#fila-item-{{ livro.cd_sequencial }}"
+              hx-swap="outerHTML"
+              title="Pausar">
+        <i class="bi bi-pause-fill"></i>
+      </button>
+    {% endif %}
+
+    <button class="btn btn-sm btn-outline-danger"
+            hx-delete="/api/fila/{{ livro.cd_sequencial }}"
+            hx-target="#fila-item-{{ livro.cd_sequencial }}"
+            hx-swap="outerHTML"
+            hx-confirm="Remover {{ livro.tx_titulo or 'este livro' }} da fila?"
+            title="Remover da fila">
+      <i class="bi bi-trash"></i>
+    </button>
+  </div>
+</div>

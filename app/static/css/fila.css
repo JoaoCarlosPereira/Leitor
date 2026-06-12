@@ -1,0 +1,72 @@
+.fila-item {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: box-shadow 0.2s;
+}
+
+.fila-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.fila-item.em-producao {
+  border-left: 4px solid #0dcaf0;
+}
+
+.fila-item.concluido {
+  border-left: 4px solid #198754;
+  opacity: 0.8;
+}
+
+.fila-item.pausado {
+  border-left: 4px solid #ffc107;
+}
+
+.fila-item.erro {
+  border-left: 4px solid #dc3545;
+}
+
+.fila-item.aguardando {
+  border-left: 4px solid #6c757d;
+}
+
+.fila-item.extracao,
+.fila-item.personagens,
+.fila-item.vozes,
+.fila-item.producao,
+.fila-item.juncao {
+  border-left: 4px solid #0dcaf0;
+}
+
+.fila-posicao {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #6c757d;
+  min-width: 40px;
+  text-align: center;
+}
+
+.status-badge {
+  font-size: 0.85em;
+  padding: 0.35em 0.65em;
+}
+
+.fila-acoes .btn {
+  min-width: 36px;
+}
+
+@media (max-width: 576px) {
+  .fila-item {
+    flex-wrap: wrap;
+  }
+
+  .fila-acoes {
+    width: 100%;
+    justify-content: flex-start !important;
+  }
+}

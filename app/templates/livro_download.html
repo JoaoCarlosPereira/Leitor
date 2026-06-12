@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Download &mdash; {{ livro.tx_titulo }}{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+        <li class="breadcrumb-item active">Download</li>
+    </ol>
+</nav>
+
+<h1 class="h3">{{ livro.tx_titulo }}</h1>
+<p class="text-muted">Audiolivro final.</p>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Audiolivro pronto</h5>
+        <p class="card-text">
+            Estado: <span class="badge bg-success estado-badge">{{ livro.estado_pipeline }}</span>
+        </p>
+
+        <audio controls class="w-100 mb-3">
+            <source src="/api/livro/{{ livro.cd_sequencial }}/download/file" type="audio/mpeg">
+            Seu navegador nao suporta o elemento audio.
+        </audio>
+
+        <a href="/api/livro/{{ livro.cd_sequencial }}/download/file"
+           class="btn btn-primary"
+           download="{{ livro.tx_titulo }}.mp3">
+            Baixar audiolivro
+        </a>
+    </div>
+</div>
+{% endblock %}

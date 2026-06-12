@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "leitor"
+version = "0.1.0"
+description = "Plataforma de produção de audiolivros multi-voz a partir de PDFs"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Equipe Leitor" }]
+keywords = ["audiobook", "tts", "pdf", "ai", "qwen3"]
+
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "celery>=5.4.0",
+    "redis>=5.2.0",
+    "sqlalchemy>=2.0.36",
+    "alembic>=1.14.0",
+    "psycopg2-binary>=2.9.10",
+    "openai>=1.55.0",
+    "httpx>=0.27.2",
+    "pypdf2>=3.0.1",
+    "pdfplumber>=0.11.4",
+    "jinja2>=3.1.4",
+    "python-multipart>=0.0.20",
+    "soundfile>=0.12.1",
+    "numpy>=1.26.4",
+    "pydantic-settings>=2.6.1",
+    "python-dotenv>=1.0.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.8.0",
+    "black>=24.10.0",
+    "mypy>=1.13.0",
+    "isort>=5.13.2",
+    "testcontainers[postgres,redis]>=4.8.3",
+    "httpx>=0.27.2",
+]
+
+[tool.setuptools]
+packages = ["app", "app.routes", "app.services", "app.repositories", "app.repositories.models", "tasks"]
+
+[tool.setuptools.package-dir]
+app = "app"
+tasks = "tasks"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-v --tb=short --cov=app --cov=tasks --cov-report=term-missing --cov-fail-under=70"
+pythonpath = ["."]
+markers = [
+    "unit: testes unitários",
+    "integration: testes de integração",
+]
+
+[tool.coverage.run]
+source = ["app", "tasks"]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "*/__init__.py",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+ignore_missing_imports = true
+
+[tool.isort]
+profile = "black"
+line_length = 100

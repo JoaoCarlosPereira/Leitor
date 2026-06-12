@@ -1,0 +1,16 @@
+{% set estado = livro.estado_pipeline or 'aguardando' %}
+{% set config = {
+  'aguardando':   ('bg-secondary', 'bi-hourglass-split',       'Aguardando'),
+  'extracao':     ('bg-info text-dark', 'bi-file-earmark-text', 'Extração'),
+  'personagens':  ('bg-info text-dark', 'bi-people-fill',        'Personagens'),
+  'vozes':        ('bg-info text-dark', 'bi-mic-fill',           'Vozes'),
+  'producao':     ('bg-info text-dark', 'bi-soundwave',         'Produção'),
+  'juncao':       ('bg-info text-dark', 'bi-union',              'Junção'),
+  'concluido':    ('bg-success', 'bi-check-circle-fill',          'Concluído'),
+  'pausado':      ('bg-warning text-dark', 'bi-pause-circle-fill', 'Pausado'),
+  'erro':         ('bg-danger',  'bi-exclamation-triangle-fill', 'Erro'),
+} %}
+{% set cfg = config.get(estado, ('bg-secondary', 'bi-question-circle', estado|capitalize)) %}
+<span class="badge status-badge {{ cfg[0] }}">
+  <i class="bi {{ cfg[1] }}"></i> {{ cfg[2] }}
+</span>

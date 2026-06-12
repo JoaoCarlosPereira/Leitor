@@ -1,0 +1,43 @@
+{# Partial: grid de sugestoes de vozes do catalogo #}
+{# Variaveis esperadas no contexto:        #}
+{#   sugestoes: list[VozInfo]               #}
+{#   livro_id: int                         #}
+{#   personagem_id: int                    #}
+{#   cd_voz_selecionada: str | None        #}
+<div class="d-flex flex-wrap gap-2">
+  {% if sugestoes %}
+    {% for v in sugestoes %}
+    <div class="card voice-card {% if cd_voz_selecionada == v.id %}selected{% endif %}"
+         style="width: 12rem;">
+      <div class="card-body p-2">
+        <p class="card-title small mb-1" title="{{ v.prompt }}">{{ v.nome }}</p>
+        <p class="card-text text-muted mb-1"
+           style="font-size: 0.7rem; line-height: 1.1;">
+          {{ v.prompt[:50] }}{% if v.prompt|length > 50 %}…{% endif %}
+        </p>
+        <p class="card-text text-muted mb-1" style="font-size: 0.65rem;">
+          <i class="bi bi-tag-fill"></i> {{ v.categoria }}
+        </p>
+        <audio controls preload="none" style="width: 100%; height: 28px;">
+          <source src="/api/vozes/{{ v.id }}/audio" type="audio/wav">
+        </audio>
+        <button class="btn btn-sm btn-success w-100 mt-1"
+                hx-put="/api/livro/{{ livro_id }}/personagens/{{ personagem_id }}/voz-catalogo"
+                hx-vals='{"cd_voz": "{{ v.id }}", "tx_voz_origem": "catalogo"}'
+                hx-swap="none">
+          {% if cd_voz_selecionada == v.id %}
+          <i class="bi bi-check"></i> Selecionada
+          {% else %}
+          <i class="bi bi-check2"></i> Escolher
+          {% endif %}
+        </button>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <p class="text-muted small mb-0">
+    <i class="bi bi-info-circle"></i>
+    Nenhuma sugestão disponível para este perfil.
+  </p>
+  {% endif %}
+</div>

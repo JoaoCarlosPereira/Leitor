@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Revisão de Personagens - {{ livro.tx_titulo or "(sem titulo)" }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+      <h1 class="h3 mb-1">{{ livro.tx_titulo or "(sem titulo)" }}</h1>
+      <h2 class="h5 text-muted mb-0">Revisão de Personagens</h2>
+    </div>
+    <a href="/" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Voltar ao dashboard
+    </a>
+  </div>
+
+  {# Polling HTMX para status da analise LLM. Atualiza a cada 2s. #}
+  <div id="status-analise"
+       hx-get="/api/livro/{{ livro.cd_sequencial }}/status-partial"
+       hx-trigger="load, every 2s"
+       hx-swap="innerHTML">
+    <p class="text-muted">Verificando status da análise...</p>
+  </div>
+
+  <div class="row mt-4">
+    {# ============ Lista de personagens ============ #}
+    <div class="col-md-4">
+      <h3 class="h5">
+        Personagens
+        <span class="badge bg-primary rounded-pill">{{ personagens|length }}</span>
+      </h3>
+      <ul class="list-group" id="lista-personagens">
+        {% for p in personagens %}
+        <li class="list-group-item personagem-item"
+            data-personagem-id="{{ p.cd_sequencial }}"
+            style="border-left: 5px solid {{ p.cor }};">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong class="personagem-nome">{{ p.tx_personagem }}</strong>
+              {% if p.fl_eh_narrador == 'S' %}
+                <span class="badge bg-secondary">Narrador</span>
+              {% endif %}
+            </div>
+            <small class="text-muted">#{{ p.cd_sequencial }}</small>
+          </div>
+
+          <small class="text-muted d-block mt-1">
+            {{ p.tx_genero or "?" }} | {{ p.tx_idade or "?" }}
+          </small>
+          <small class="text-muted d-block">
+            <i class="bi bi-chat-quote"></i> {{ p.total_falas }} falas
+          </small>
+
+          {# Botoes de acao #}
+          <div class="mt-2 btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-primary"
+                    hx-get="/livro/{{ livro.cd_sequencial }}/personagem/{{ p.cd_sequencial }}/falas-partial"
+                    hx-target="#falas-personagem"
+                    hx-swap="innerHTML"
+                    hx-indicator="#falas-loading">
+              <i class="bi bi-eye"></i> Ver falas
+            </button>
+            <button type="button" class="btn btn-outline-warning"
+                    hx-put="/api/livro/{{ livro.cd_sequencial }}/personagens/{{ p.cd_sequencial }}/renomear"
+                    hx-vals='js:{nome: prompt("Novo nome para &quot;{{ p.tx_personagem|e }}&quot;:", "{{ p.tx_personagem|e }}")}'
+                    hx-swap="none"
+                    hx-on::after-request="location.reload()">
+              <i class="bi bi-pencil"></i> Renomear
+            </button>
+            <button type="button" class="btn btn-outline-danger"
+                    hx-get="/livro/{{ livro.cd_sequencial }}/personagem/{{ p.cd_sequencial }}/mesclar-form"
+                    hx-target="#modal-mesclar-body"
+                    hx-swap="innerHTML"
+                    data-bs-toggle="modal" data-bs-target="#modal-mesclar">
+              <i class="bi bi-union"></i> Mesclar
+            </button>
+          </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted text-center">
+          Nenhum personagem identificado para este livro.
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    {# ============ Falas do personagem selecionado ============ #}
+    <div class="col-md-8">
+      <h3 class="h5">Falas</h3>
+      <div id="falas-loading" class="htmx-indicator text-muted small mb-2">
+        <i class="bi bi-hourglass-split"></i> Carregando falas...
+      </div>
+      <div id="falas-personagem"
+           hx-get="/livro/{{ livro.cd_sequencial }}/personagem/0/falas-partial"
+           hx-trigger="load"
+           hx-swap="innerHTML">
+        <p class="text-muted">Selecione um personagem para ver suas falas.</p>
+      </div>
+    </div>
+  </div>
+
+  {# ============ Sugestoes de unificacao ============ #}
+  <div id="sugestoes-container" class="mt-4"
+       hx-get="/livro/{{ livro.cd_sequencial }}/sugestoes-partial"
+       hx-trigger="load"
+       hx-swap="innerHTML">
+    <p class="text-muted">Carregando sugestões de unificação...</p>
+  </div>
+
+  {# ============ Confirmacao ============ #}
+  <div class="mt-5 text-center border-top pt-4">
+    <p class="text-muted mb-3">
+      Após revisar a lista de personagens, confirme para prosseguir para a etapa de vozes.
+    </p>
+    <button type="button" class="btn btn-primary btn-lg"
+            hx-put="/api/livro/{{ livro.cd_sequencial }}/confirmar-personagens"
+            hx-swap="none"
+            hx-confirm="Confirmar a lista atual de personagens? Esta acao avanca o pipeline para a etapa de vozes.">
+      <i class="bi bi-check-circle"></i> Confirmar Lista de Personagens
+    </button>
+  </div>
+</div>
+
+{# ============ Modal de mesclagem ============ #}
+<div class="modal fade" id="modal-mesclar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Mesclar Personagem</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body" id="modal-mesclar-body">
+        <p class="text-muted">Carregando formulário...</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

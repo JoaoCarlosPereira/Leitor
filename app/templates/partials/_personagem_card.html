@@ -1,0 +1,51 @@
+{# Partial: card de um unico personagem.                            #}
+{# Usado para renderizacao incremental apos acoes (renomear,       #}
+{# mesclar) sem precisar recarregar a pagina inteira.              #}
+{#                                                                  #}
+{# Variaveis esperadas:                                             #}
+{#   - personagem: dict com chaves: cd_sequencial, tx_personagem,   #}
+{#     cor (hex), fl_eh_narrador, tx_genero, tx_idade, total_falas  #}
+{#   - livro_id: int (id do livro)                                  #}
+<li class="list-group-item personagem-item"
+    data-personagem-id="{{ personagem.cd_sequencial }}"
+    style="border-left: 5px solid {{ personagem.cor }};">
+  <div class="d-flex justify-content-between align-items-start">
+    <div>
+      <strong class="personagem-nome">{{ personagem.tx_personagem }}</strong>
+      {% if personagem.fl_eh_narrador == 'S' %}
+        <span class="badge bg-secondary">Narrador</span>
+      {% endif %}
+    </div>
+    <small class="text-muted">#{{ personagem.cd_sequencial }}</small>
+  </div>
+
+  <small class="text-muted d-block mt-1">
+    {{ personagem.tx_genero or "?" }} | {{ personagem.tx_idade or "?" }}
+  </small>
+  <small class="text-muted d-block">
+    <i class="bi bi-chat-quote"></i> {{ personagem.total_falas }} falas
+  </small>
+
+  <div class="mt-2 btn-group btn-group-sm" role="group">
+    <button type="button" class="btn btn-outline-primary"
+            hx-get="/livro/{{ livro_id }}/personagem/{{ personagem.cd_sequencial }}/falas-partial"
+            hx-target="#falas-personagem"
+            hx-swap="innerHTML">
+      <i class="bi bi-eye"></i> Ver falas
+    </button>
+    <button type="button" class="btn btn-outline-warning"
+            hx-put="/api/livro/{{ livro_id }}/personagens/{{ personagem.cd_sequencial }}/renomear"
+            hx-vals='js:{nome: prompt("Novo nome:", "{{ personagem.tx_personagem|e }}")}'
+            hx-swap="none"
+            hx-on::after-request="if(event.detail.successful) location.reload()">
+      <i class="bi bi-pencil"></i> Renomear
+    </button>
+    <button type="button" class="btn btn-outline-danger"
+            hx-get="/livro/{{ livro_id }}/personagem/{{ personagem.cd_sequencial }}/mesclar-form"
+            hx-target="#modal-mesclar-body"
+            hx-swap="innerHTML"
+            data-bs-toggle="modal" data-bs-target="#modal-mesclar">
+      <i class="bi bi-union"></i> Mesclar
+    </button>
+  </div>
+</li>

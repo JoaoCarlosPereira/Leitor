@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Configuração de Vozes - {{ livro.tx_titulo }}{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/vozes.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h1 class="mb-0">{{ livro.tx_titulo }}</h1>
+      {% if livro.autor %}
+      <small class="text-muted">por {{ livro.autor }}</small>
+      {% endif %}
+    </div>
+    <a href="/" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+  </div>
+  <h2 class="text-muted h4">Configuração de Vozes por Personagem</h2>
+  <p class="text-muted">
+    Defina o perfil de cada personagem e escolha entre uma voz do catálogo
+    ou uma voz criada por <em>Voice Design</em>. As vozes aprovadas são
+    congeladas como referência reutilizável.
+  </p>
+
+  {% if not personagens %}
+  <div class="alert alert-warning text-center" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    Nenhum personagem cadastrado para este livro. Conclua a etapa de
+    <a href="/livro/{{ livro.cd_sequencial }}/personagens" class="alert-link">
+      revisão de personagens
+    </a> primeiro.
+  </div>
+  {% endif %}
+
+  <div class="row mt-4">
+    {% for p in personagens %}
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header" style="border-left: 5px solid {{ p.cor }};">
+          <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+              {{ p.tx_personagem or '(Sem nome)' }}
+              {% if p.fl_voz_aprovada == 'S' %}
+              <span class="badge bg-success">Aprovada</span>
+              {% elif p.cd_voz %}
+              <span class="badge bg-warning text-dark">Pré-aprovada</span>
+              {% endif %}
+              {% if p.fl_eh_narrador == 'S' %}
+              <span class="badge bg-info">Narrador</span>
+              {% endif %}
+            </h4>
+            <span class="text-muted small">#{{ p.cd_sequencial }}</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Perfil do personagem -->
+          <form hx-put="/api/livro/{{ livro.cd_sequencial }}/personagens/{{ p.cd_sequencial }}/perfil"
+                hx-trigger="change"
+                hx-swap="none"
+                hx-ext="json-enc"
+                hx-on::after-request="if(event.detail.successful) this.classList.add('text-muted')">
+            <div class="row g-2">
+              <div class="col-md-6">
+                <label class="form-label small mb-1">Gênero</label>
+                <select name="tx_genero" class="form-select form-select-sm">
+                  <option value="Male" {% if p.tx_genero == 'Male' %}selected{% endif %}>Masculino</option>
+                  <option value="Female" {% if p.tx_genero == 'Female' %}selected{% endif %}>Feminino</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small mb-1">Faixa Etária</label>
+                <select name="tx_idade" class="form-select form-select-sm">
+                  <option value="Child" {% if p.tx_idade == 'Child' %}selected{% endif %}>Criança</option>
+                  <option value="Adult" {% if p.tx_idade == 'Adult' %}selected{% endif %}>Adulto</option>
+                  <option value="Elderly" {% if p.tx_idade == 'Elderly' %}selected{% endif %}>Idoso</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-2">
+              <label class="form-label small mb-1">Instrução de Estilo (Voice Design)</label>
+              <textarea name="tx_instrucao_estilo" class="form-control form-control-sm" rows="2"
+                        placeholder="Ex: voz masculina adulta, grave e solene, com leve sotaque interiorano">{{ p.tx_instrucao_estilo or '' }}</textarea>
+            </div>
+            <button type="button"
+                    class="btn btn-info btn-sm mt-2"
+                    hx-post="/api/livro/{{ livro.cd_sequencial }}/personagens/{{ p.cd_sequencial }}/gerar-voice-design"
+                    hx-target="#preview-{{ p.cd_sequencial }}"
+                    hx-swap="innerHTML"
+                    hx-indicator="#spinner-{{ p.cd_sequencial }}">
+              <i class="bi bi-magic"></i> Gerar amostra Voice Design
+            </button>
+            <span id="spinner-{{ p.cd_sequencial }}" class="htmx-indicator spinner-border spinner-border-sm text-info ms-2" role="status"></span>
+          </form>
+
+          <!-- Preview do Voice Design -->
+          <div id="preview-{{ p.cd_sequencial }}" class="mt-2">
+            {% if p.tx_voz_referencia_path and p.fl_voz_aprovada == 'S' %}
+            <div class="voice-design-preview">
+              <small class="text-muted d-block mb-1"><strong>Referência congelada</strong></small>
+              <audio controls preload="none" style="width: 100%;">
+                <source src="/api/vozes/referencia/{{ p.cd_sequencial }}/audio" type="audio/wav">
+              </audio>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Sugestões automáticas do catálogo -->
+          <h6 class="mt-3 mb-2">Sugestões do Catálogo</h6>
+          {% if p.sugestoes %}
+          <div class="d-flex flex-wrap gap-2">
+            {% for v in p.sugestoes %}
+            <div class="card voice-card {% if p.cd_voz == v.id %}selected{% endif %}" style="width: 12rem;">
+              <div class="card-body p-2">
+                <p class="card-title small mb-1" title="{{ v.prompt }}">{{ v.nome }}</p>
+                <p class="card-text text-muted mb-1" style="font-size: 0.7rem; line-height: 1.1;">
+                  {{ v.prompt[:50] }}{% if v.prompt|length > 50 %}…{% endif %}
+                </p>
+                <p class="card-text text-muted mb-1" style="font-size: 0.65rem;">
+                  <i class="bi bi-tag-fill"></i> {{ v.categoria }}
+                </p>
+                <audio controls preload="none" style="width: 100%; height: 28px;">
+                  <source src="/api/vozes/{{ v.id }}/audio" type="audio/wav">
+                </audio>
+                <button class="btn btn-sm btn-success w-100 mt-1"
+                        hx-put="/api/livro/{{ livro.cd_sequencial }}/personagens/{{ p.cd_sequencial }}/voz-catalogo"
+                        hx-vals='{"cd_voz": "{{ v.id }}", "tx_voz_origem": "catalogo"}'
+                        hx-swap="none">
+                  {% if p.cd_voz == v.id %}
+                  <i class="bi bi-check"></i> Selecionada
+                  {% else %}
+                  <i class="bi bi-check2"></i> Escolher
+                  {% endif %}
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-muted small">
+            <i class="bi bi-info-circle"></i>
+            Nenhuma sugestão disponível — verifique se gênero e faixa
+            etária estão preenchidos.
+          </p>
+          {% endif %}
+
+          <!-- Botão de aprovação / congelamento -->
+          {% if p.cd_voz %}
+          <div class="d-grid gap-2 mt-3">
+            {% if p.fl_voz_aprovada != 'S' %}
+            <button class="btn btn-success"
+                    hx-put="/api/livro/{{ livro.cd_sequencial }}/personagens/{{ p.cd_sequencial }}/aprovar-voz"
+                    hx-swap="none"
+                    hx-confirm="Aprovar e congelar a voz atual deste personagem?">
+              <i class="bi bi-check-circle"></i> Aprovar e Congelar Voz
+            </button>
+            {% else %}
+            <div class="alert alert-success mb-0 py-2 small">
+              <i class="bi bi-lock-fill"></i>
+              Voz congelada e pronta para uso na geração de áudio.
+            </div>
+            {% endif %}
+          </div>
+          {% else %}
+          <div class="alert alert-light border mt-3 mb-0 py-2 small">
+            <i class="bi bi-arrow-up-circle"></i>
+            Selecione uma voz acima para liberar a aprovação.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if personagens %}
+  <div class="text-center mt-4 mb-5">
+    <button class="btn btn-primary btn-lg"
+            hx-put="/api/livro/{{ livro.cd_sequencial }}/confirmar-vozes"
+            hx-swap="none"
+            hx-confirm="Confirmar vozes de todos os personagens? Esta ação marca a etapa de vozes como concluída e libera o livro para produção.">
+      <i class="bi bi-check2-all"></i> Confirmar Vozes
+    </button>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

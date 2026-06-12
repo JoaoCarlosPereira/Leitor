@@ -1,0 +1,20 @@
+{# Agregador de partials de vozes para inclusao via include/import #}
+{# Este arquivo nao renderiza diretamente - use os includes abaixo  #}
+{#                                                             #}
+{# Componentes disponiveis:                                     #}
+{#   {% include "partials/vozes/_sugestoes_vozes.html" %}      #}
+{#   {% include "partials/vozes/_preview_voice_design.html" %} #}
+{#   {% include "partials/vozes/_categoria_dropdown.html" %}   #}
+{#                                                              #}
+{# Variaveis comuns esperadas no contexto:                       #}
+{#   livro_id, personagem_id, livro, personagem, sugestoes,     #}
+{#   audio_url, texto_referencia, descricao, erro,              #}
+{#   categorias, selecionada, cd_voz_selecionada                 #}
+
+{% if sugestoes is defined %}
+  {% include "partials/vozes/_sugestoes_vozes.html" %}
+{% elif audio_url is defined or erro is defined %}
+  {% include "partials/vozes/_preview_voice_design.html" %}
+{% elif categorias is defined %}
+  {% include "partials/vozes/_categoria_dropdown.html" %}
+{% endif %}

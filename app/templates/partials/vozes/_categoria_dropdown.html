@@ -1,0 +1,35 @@
+{# Partial: dropdown de filtro por categoria do catalogo de vozes #}
+{# Variaveis esperadas no contexto:                              #}
+{#   categorias: list[str]                                       #}
+{#   selecionada: str | None                                     #}
+{#   livro_id: int                                               #}
+<div class="dropdown d-inline-block">
+  <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false">
+    <i class="bi bi-filter"></i>
+    Categoria: <strong>{{ selecionada or 'Todas' }}</strong>
+  </button>
+  <ul class="dropdown-menu">
+    <li>
+      <a class="dropdown-item {% if not selecionada %}active{% endif %}"
+         hx-get="/api/vozes/catalogo?livro_id={{ livro_id }}"
+         hx-target="#catalogo-container"
+         hx-swap="innerHTML">
+        Todas
+      </a>
+    </li>
+    <li><hr class="dropdown-divider"></li>
+    {% for c in categorias %}
+    <li>
+      <a class="dropdown-item {% if selecionada == c %}active{% endif %}"
+         hx-get="/api/vozes/catalogo?livro_id={{ livro_id }}&categoria={{ c|urlencode }}"
+         hx-target="#catalogo-container"
+         hx-swap="innerHTML">
+        {{ c }}
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</div>

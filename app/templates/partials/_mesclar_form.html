@@ -1,0 +1,44 @@
+{# Partial: formulario de mesclagem dentro do modal.                #}
+{#                                                                  #}
+{# Variaveis:                                                       #}
+{#   - livro: instancia LivroCabecalho (com cd_sequencial)          #}
+{#   - origem: dict (cd_sequencial, tx_personagem)                  #}
+{#   - candidatos: lista de dicts (cd_sequencial, tx_personagem)    #}
+<p class="small text-muted">
+  Você está prestes a mesclar o personagem
+  <strong>{{ origem.tx_personagem }}</strong> em outro personagem.
+  Todas as falas da origem serão reatribuídas e o personagem de origem será removido.
+</p>
+
+<form hx-put="/api/livro/{{ livro.cd_sequencial }}/personagens/mesclar"
+      hx-swap="none"
+      hx-on::after-request="
+        if (event.detail.successful) {
+          bootstrap.Modal.getInstance(document.getElementById('modal-mesclar')).hide();
+          location.reload();
+        }">
+  <input type="hidden" name="origem" value="{{ origem.cd_sequencial }}">
+
+  <div class="mb-3">
+    <label for="destino-select" class="form-label">
+      <i class="bi bi-arrow-right"></i> Mesclar em:
+    </label>
+    <select name="destino" id="destino-select" class="form-select" required>
+      <option value="" selected disabled>— selecione o personagem destino —</option>
+      {% for c in candidatos %}
+        <option value="{{ c.cd_sequencial }}">{{ c.tx_personagem }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="d-flex justify-content-end gap-2">
+    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+      Cancelar
+    </button>
+    <button type="submit" class="btn btn-danger"
+            hx-disabled-elt="this"
+            onclick="return confirm('Confirmar a mesclagem?')">
+      <i class="bi bi-union"></i> Mesclar
+    </button>
+  </div>
+</form>

@@ -1,0 +1,65 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: leitor-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-leitor}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-leitor}
+      POSTGRES_DB: ${DB_NAME:-leitor}
+    ports:
+      - "5432:5432"
+    volumes:
+      - leitor_postgres_data:/var/lib/postgresql/data
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-leitor} -d ${DB_NAME:-leitor}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - leitor_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: leitor-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - leitor_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - leitor_net
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: leitor-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - leitor_net
+
+volumes:
+  leitor_postgres_data:
+    name: leitor_postgres_data
+  leitor_redis_data:
+    name: leitor_redis_data
+
+networks:
+  leitor_net:
+    name: leitor_net
+    driver: bridge
