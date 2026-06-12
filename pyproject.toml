@@ -56,7 +56,7 @@ tasks = "tasks"
 asyncio_mode = "auto"
 testpaths = ["tests"]
 addopts = "-v --tb=short --cov=app --cov=tasks --cov-report=term-missing --cov-fail-under=70"
-pythonpath = ["."]
+pythonpath = [".", "scripts"]
 markers = [
     "unit: testes unitários",
     "integration: testes de integração",

@@ -27,18 +27,38 @@ tests/           # Testes unitários e integração
 
 ## Instalação
 
-### Quick Install (Linux)
+### Quick Install (Linux / Windows)
 
+**Linux / macOS:**
 ```bash
-# 1. Clone o repositório
 git clone <url> && cd leitor
-
-# 2. Execute o instalador
 chmod +x install.sh
 ./install.sh
 ```
 
-O instalador automatiza: dependências do sistema, ambiente virtual, instalação de pacotes, configuração do `.env`, criação de diretórios, Docker Compose (opcional), migrations e geração de scripts de inicialização.
+**Windows (PowerShell):**
+```powershell
+git clone <url>
+cd leitor
+.\install.ps1
+```
+
+**Direto com Python (qualquer SO):**
+```bash
+python install.py
+```
+
+O instalador automatiza:
+- ambiente virtual e dependências Python
+- detecção de LLM/TTS em `localhost` (solicita IP se não encontrar)
+- criação do banco PostgreSQL se não existir
+- configuração do `.env`
+- Docker Compose opcional (PostgreSQL + Redis)
+- migrations Alembic
+- porta dinâmica do Leitor se `8000` já estiver em uso
+- scripts de inicialização (`start*.sh` ou `start*.ps1`)
+
+Modo não interativo: `python install.py -y` (use `LLM_HOST`, `TTS_HOST`, `USE_DOCKER=1` se necessário).
 
 ### Instalação Manual
 
@@ -69,11 +89,11 @@ celery -A tasks.pipeline.celery_app worker --loglevel=info --concurrency=4
 
 ### Scripts de Inicialização
 
-| Script | Uso |
-|--------|-----|
-| `./start.sh` | Apenas servidor web (produção) |
-| `./start_worker.sh` | Apenas worker Celery |
-| `./start_all.sh` | Web + worker juntos (produção) |
+| Linux | Windows | Uso |
+|-------|---------|-----|
+| `./start.sh` | `.\start.ps1` | Apenas servidor web (produção) |
+| `./start_worker.sh` | `.\start_worker.ps1` | Apenas worker Celery |
+| `./start_all.sh` | `.\start_all.ps1` | Web + worker juntos (produção) |
 
 ### Variáveis de Ambiente
 
@@ -88,7 +108,7 @@ celery -A tasks.pipeline.celery_app worker --loglevel=info --concurrency=4
 | `REDIS_PORT` | `6379` | Porta do Redis |
 | `LLM_BASE_URL` | `http://192.168.2.112:8000/v1/` | Endpoint do LLM |
 | `TTS_BASE_URL` | `http://192.168.2.112:8881` | Endpoint do TTS |
-| `APP_PORT` | `8000` | Porta do servidor web |
+| `APP_PORT` | `8000` | Porta do servidor web (se ocupada, o instalador/start escolhem a próxima livre) |
 
 ## Endpoints
 
